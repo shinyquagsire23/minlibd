@@ -1,0 +1,23 @@
+This collection has libraries and tools to compile D language programs for
+embedded or "bare metal" systems with the gdc compiler. The main focus is
+STM32 controllers but the library and build tools are easy to port to any
+processor.
+
+The original D runtime library uses libraries from the operating system.
+It can not be used in embedded systems when there is no operating
+system. 
+
+CURRENT STATE:
+This version is compatible with gdc head from august 2016 and matching
+gcc 7 version.
+
+
+
+This package is in bitbucket.org/timosi/minlibd.
+Check the wiki all README files for more info. 
+
+To use this, you need a gdc compiler installed.
+Gdc is a D language compiler that runs with the gnu gcc compiler.
+More about gdc can be found in gdcproject.org.
+More about the D language is in dlang.org.
+More about gcc is in gcc.gnu.org.

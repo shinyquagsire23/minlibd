@@ -1,0 +1,10 @@
+This directory will contain examples how the executable can be sent to
+the target processor. 
+
+The default format that gcc produces is elf.
+When using gold linker, elf is the only possible format. 
+
+Elf is quite complex but it is easy to parse with structures defined
+in elf.h (look 'man elf'). So there should be no need for other formats
+like the old s-file. If another format is needed there usually is some
+converter program for it.

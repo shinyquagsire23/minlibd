@@ -1,0 +1,164 @@
+This file is about linking and TLS (thread local storage).
+
+contents:
+1. General memory mapping in linked programs
+2. TLS
+3. D and memory
+4. Linking
+5. Linking issues
+
+
+1. General memory mapping in linked programs
+
+When a compiler generates object files, it puts the compiled program and data
+into different segments. There are three main segments, but a complex
+program may have tens of segments.
+The linker reads the object files and maps these input segments to output
+segments according to the linking rules. Usually input segments with the same
+name are grouped together. Several groups are mapped together to one output
+section. The number of output sections is smaller than input sections.
+
+The three main sections are text, data and bss. These sections does
+always exist in a linked program.
+
+Text section contains all program code. All input text sections are usually
+put in one output text section. In microcontrollers there may be need for
+several program sections. The system may have internal and external memory
+and certain parts of the program (like startup code) have to be in fixed
+addresses.
+Many other input sections may also be mapped to the text output section.
+One is rodata input section that contains string constants. Other sections
+that contain constant or immutable data may also be mapped to text section.
+There are also sections that contain compiler data like jump tables. 
+
+Data section contains variables that have some initial value like int a=5.
+Variables with constant data may be mapped here or to text section.
+
+Bss section contain variables that does not have an initial value or
+have zero initial value.
+
+A linked program may contain several sections that have information about
+the program or debug data. These sections are not needed to run the program,
+but external debugging tools may use them.
+
+When linking a program for a microcontroller, text segment is placed
+into rom area and data and bss into ram area. A copy of data segment has to
+be in rom. Startup code has to copy the contents of data from rom to ram and
+write zeros to the bss area.
+
+
+2. TLS
+
+When several processes run in parallel, they have no knowledge of each other.
+Every process has its own memory area and it can not access any memory that
+belongs to another process. Even a forked process is totally separate from
+the process that forked it. A forked process gets a separate copy of all
+data but after that the processes are completely separated.
+
+Threads, on the other hand, run under the same process and share the memory.
+Any thread has access to global variables. A thread has to be aware that
+another thread may change the data at any time.
+A thread has also its own private data. This has a problem: if there are two
+instances of the same thread they both would access the same private data.
+
+The solution is tls, thread local storage. When a thread is started, it gets
+its own copy of private data. Every thread uses only its own data and has no 
+access to the data of another thread. The data area is not accessible after 
+the thread ends.
+
+What data is put in the global area and in the tls area depends on the
+implementation.
+
+Tls needs two more sections, tdata and tbss. They are like data and bss.
+When a thread starts, tdata area are copied to tls of the new thread
+and the new tbss area is zeroed. The thread library takes care of this
+in pc:s.
+
+Tdata and tbss sections are mapped to text output section dy default, but
+some toolchains do not have them at all. To have a simple way to access them
+these sections should be placed in their own output sections.
+
+
+3. D and memory
+
+In C programs, all public variables are global. In D the defult is to put 
+everything to tls.
+
+D uses memory in 4 ways to store variables:
+- Global memory 
+  Only variables that are declared with __gshared are real global variables in
+  D and are located in data and bss sections. They are visible in every thread.
+  Because any thread may change a variable in this area, any read-modify-write
+  sequence has to be synchronized. These variables should also be treated like
+  C volatile variables. Their value should not be cached or reused.
+  Currently gdc does treat them as volatile and discussion is going on
+  whether this is a feature or a bug.
+  
+- TLS area
+  All global variables that are not declared as __gshared are put here. This
+  includes all module level variables and all static variables in classes and
+  functions. It does not matter whether they are declared as private or public.
+  This affect only to visibility for other modules. All data is still at the
+  same memory area.
+  
+- Memory pool
+  Everything that is initiated with the 'new' kewyword goes to this area.
+  The program reserves a piece of memory with malloc library funtion.
+  How the function does the allocation is implementation dependent. Usually
+  a bigger memory area is reserved and small pieces from that area are
+  reserved in each malloc.
+  When the area is not used any more, it can be freed for other use.
+  A garbage collector frees automatically those areas that are not
+  referenced any more. It is not a good idea to free them directly from the
+  program because there may still be some references to the area. A free
+  memory may be reused and using old references may destroy the new data.
+
+- Stack
+  Variables that are local to a function goes to stack and are deleted
+  when the function exits. In smaller systems the stack size may be small
+  and big tables may cause stack overflow. Bigger tables should be 
+  allocated from pool with new.
+  
+
+4. Linking 
+
+When a program is run in pc, the whole program file is loaded into ram memory.
+Code and data may be in the same memory area or code and data may be separated.
+It is not possible to know the address where the program is loaded. 
+Programs may use relative addressing where everything is related to start of
+the memory. The processor may also provide virtual addressing where the
+address of the program is always the same and the memory controller
+translates the address to the real address.
+In microcontrollers the places of memories are fixed. Program code goes to
+rom and data goes to ram. Some parts of code or data usually have to be in
+fixed locations. The initial values of variables have to be stored in rom
+where thay are copied to ram. Sometimes parts of program code is also copied
+to ram.
+
+Linking rules are in a file called linker script. The location of the default
+script is system dependent. There are several different scripts but none of
+them is suitable for controller programs. Toolsets for controllers provide
+their own linker script but most of them are not made for threaded programs
+and do not have tls sections at all.
+
+There are currently two different linkers. The default is the old gnu
+ld. Like all gnu programs, this does support many different systems 
+and carries a lot of gnu history within. The new linker is
+named gold. It is totally rewritten and supports modern elf systems only.
+It is selected with configure option --enable-gold. This option makes
+both linkers which are ld.bfd and ld.gold. Ld is a symlink to gold but
+can be changed to point to the traditional linker. 
+There is no documentation about gold. It should work just the same way as
+the old ld does.
+
+5. Linking issues
+
+There is one difference between ld and gold: ld does not put the bss section
+on file but gold does. The section contains all zeros so we do not need that.
+The bootloader should be aware of this and try not to load the bss section
+into ram area.
+
+
+to be continued...
+
+

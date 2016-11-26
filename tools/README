@@ -1,0 +1,195 @@
+This directory contains a sample project. There is a complete building
+environment and working sample program. 
+
+License: Gcc, gdc and its libraries are under gnu license, so this
+sample program is too. If you need another license, just ask. Also
+available is commercial license, application programming and hardware
+design and manufacturing.
+Some files in this project has been copied from other sources and
+have their own license.
+
+Please note: This is _not_ an example of good D style or 
+programming practice. This is just "works for me". 
+
+This project has tested with STM32F407 processor and default values 
+are for it. There is some support for other STM32 but none of them
+is currently supported. Support for STM32F411 is under work.
+Support for F3, L4, F7 or other F4 processors may be added on demand.
+Old F1, L1 and F2 series may not be supported. F0 and L0 series may
+ba supported in the future but these require extra work because they
+have very little memory.
+The build system is flexible and can be used with any processor that
+has gdc support.
+
+The build system can compile D, C, and assembler files.
+The project has no global configuration file or script. Most things can
+be  configured in defs.mak and some fine tuning may be needed in makefiles.
+If the project is used for a different target, all files in the project
+should be checked.
+
+Note that the project should have the same settings (compiler flags
+and version statements) that was used to compile libdruntime. Otherwise
+there will be linking errors.
+In D the import statement reads and parses the whole source file, even
+if that is a library source. When doing this, the settings for the main
+source file apply. If the imported file has been compiled with
+different settings, the imported source may not match to what has been
+compiled to the object file.
+The build system does not have automatic dependency check. If a file 
+is changed, any file that imports it should be recompiled.
+
+
+THE CONTENT OF THIS DIRECTORY
+
+Check also readmes in every subdirectory.
+
+Makefile
+   The main makefile of the project.
+   
+defs.mak
+rules.mak
+   Sub-makefiles that should be included in all makefiles in the
+   project. The former has all the configurations and the latter
+   has the fixed part.
+   
+Makefile.subdir
+   makefile template that should be copied to any subdirectory used.
+   
+main/
+   the project main source directory
+
+stm32f4/
+   everything specific to stm32f4 
+   
+   stm32f4/ldscript
+     sample linker script for stm32f4
+   stm32f4/startup/
+     stertup code for stm32f4
+
+boot/
+   pc programs that can load the binary to the target processor.
+   This is not part of the project but meant to run in pc.
+      
+   
+
+HOW TO BUILD THE SAMPLE PROGRAM
+
+There is not any configure script. All settings can be made in defs.mak.
+Usually there is no need to modify makefiles.
+When all settings are correct, just type 'make'.
+
+If everything is ok, there will be file a.out. In addition there will
+be file mapfile that contains lots of debug info. A.out is standard
+elf file and can be handled with any elf capable tool. A tool for
+viewing an elf file and to load it to the processor will be added 
+soon to this directory.
+
+'make clean' will clean this directory and 'make allclean' cleans 
+also all subdirectories.
+It is also possible to go to any subdirectory and type 'make' there
+to make just that directory. 
+
+
+
+And then some theory follows...
+
+
+WHAT IS NEEDED FOR A BUILD SYSTEM
+
+To compile and run programs in embedded system, at least the following
+are needed:
+- makefile
+- linker script
+- startup file
+- system libraries
+- boot loader
+
+A development tool package or ide usually has all of these ready.
+Very few of these are currently able to compile D programs.
+
+
+A complete toolchain for Arm Cortex-M can be found in
+launchpad.net/gcc-arm-embedded. This package does not contain D but it
+may be possible to add gdc to it.
+
+A step by step guide for making gdc toolchain for any target is in
+gdcproject.org/wiki/Cross%20Compiler
+
+
+MAKEFILE
+
+For making programs, there is sample makefiles in this directory.
+Makefile or Makefile.topdir is the main makefile for the project.
+It should always be in the top directory. Makefile.subdir is for source
+directories and should be copied as Makefile to every source directory.
+
+I have split the makefile in 3 parts. Defs.mak has all settings that
+are common to the whole project. This file should be in the top 
+directory and included in every makefile.
+Rules.mak has the basic make rules. Any makefile in the source directories
+should include this to avoid code duplication. There should not be any
+need to edit this file. Any settings that are specific for one
+directory may be put into the makefile for that directory.
+
+
+LINKER SCRIPT
+There is a sample linker script in stm32f4 directory.  It should be possible
+to use it with a different target by just changing the addresses and
+file names.
+It should be noted that there are no defaults at all when using a custom
+linker script. Even libgcc.a has to be mentioned in the linker command. 
+
+
+STARTUP FILES
+
+There are many things to do before it is possile to call main() function.
+This is totally processor dependent but some typical things are:
+- set up processor operating mode and stack pointer
+- initialize memory and interrupt controllers and clock oscillator
+- copy default values to data area
+
+The processor vendors usually provide a sample startup.
+It is not possible to include startup files for all kind of processors
+here but there will be some samples. Currently I have put a sample for
+STM32F4. When vendor libraries are used, the startup files should be
+taken from the same package. Otherwise the program may not compile.
+
+
+SYSTEM LIBRARIES
+
+Whe compiling a native program in pc, gcc always searches libc and
+libgcc even if they are not mentioned. Libc is the standard c library
+whose funtions are available to the programmer. Libgcc has low level
+functions that gcc uses for those constructions that can not
+easily be transformed to assembly language. In addition, gdc makes calls to
+libdruntime.
+When cross compiling with a custom linker script these libraries are not
+searched unless they are mentioned in the command line. Libgcc may not
+be needed when compiling a simple c program but usually the compiler
+will generate some calls to it. Libc is not needed if the program has
+no calls to its functions. The compiler itself does not generate calls
+to libc. D programs always need libdruntime because the compiler makes
+several calls to its functions.
+
+Even if libc is not used, it is needed for the gcc itself. There has
+to be a libc for the target. Instructions for installing these
+libraries are in the minlibd readme.
+
+
+BOOT LOADER
+
+When the application program has been successfully compiled the next
+step is to transfer it to the target system. In some systems the only
+way is to write the program to eprom. In many processors there is 
+jtag boot and debug system built in. The programs and tools for these
+are vendor specific and not discussed here.
+
+Many processors have their own built-in boot loader. These often use
+serial port for communicating but may also use other resources like usb.
+For these targets a program is needed that parses the linked file
+and sends its contents to the target. A sample will be provided soon in
+the boot directory.
+
+
+ 
+

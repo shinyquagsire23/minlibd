@@ -1,0 +1,44 @@
+This directory contains a sample program written in D.
+
+There is a sample d program and a minimum set of c functions
+that are needed to make a runnable program.
+
+Currently it should be possible to compile and link this program for
+arm targets. Gcc for other targets may generate different api calls. 
+
+
+Files in this directory:
+
+main.d      the d main program
+
+tls.d       tls handling
+
+memutils.c  the minimum set of memory utilities like memcpy. These are
+            similar to those in libc
+
+malloc.c    memory allocation (malloc, free etc)
+
+abort.c     an empty abort function	    
+
+uart.d      an uart driver
+
+
+NOTE: 
+Currently the D language does not have any standard way to
+access peripheral registers. The compiler is free to cache any
+memory access and change order of operations. This does mean that
+a construction like this:
+while (status_reg==0) { }
+may not work because status may be fetched from memory only once.
+
+In C a variable may be marked as volatile like this:
+volatile int a;
+This tells the compiler that the value of variable should always be
+fetched from memory even if the value is already in a register.
+
+Walter Bright, the leading developer of the D language, has refused to
+add a language feature, despite of several demands. Instead,
+there is now a library solution combined with compiler intrinsics.
+
+The old way where shared variable was considered as volatile in gdc
+does not work any more.

@@ -1,0 +1,46 @@
+This file is not a changelog. Instead, this file documents changes 
+that are needed to the current gdc libdruntime sources.
+(2.065 and 4.10 series gdc/gcc)
+
+The files are in the order they were needed when testing
+
+core/stdc/stdlib.d
+49  default value for RAND_MAX instead of assert
+
+core/memory
+84-85,123 changed private imports to public
+
+gcstub/gc.d
+31  removed import stdio
+134 removed thread_init
+
+object.d
+30         removed import minfo
+132-142    removed factory  (moduleinfo is not used)
+562        renamed GC.free gc_free (core.memory not used)
+604-657    removed associative arrays
+858-873    removed module related code
+1561-1732  removed moduleinfo
+1733-1932  removed monitor
+1933-2283  removed assicoative arrays
+2257,2262  changed comment to /* */
+
+core/exception.d
+14  removed import stdio
+593-596,610-613,627-630,639-642 removed module related functions
+
+rt/lifetime.d
+246,278,310 removed synchronized
+1222-122    removed monitor call
+
+rt/adi.d
+46-134  removed _adReverseChar (because utf is not supported)
+95-96   changed comment to //
+320-360 removed _adSortChar and _adSortWchar because of several
+        missing functions
+	
+	
+core/time.d (optional file)
+23   removed import stdc.time
+24   removed import stdio
+2125 dummy retval for the function

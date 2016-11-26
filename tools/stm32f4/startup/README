@@ -1,0 +1,45 @@
+This directory contains the minimum set of files that are needed 
+to start the processor. These have been collected from ST standard
+peripheral library for stm32F4 and the original license applies here.
+
+What is needed here depends totally on the processor.
+Anything that has to be done before calling main is put here. 
+Typical things are setting processor mode and initializing clock
+system, memory controller and interrupt controller.
+
+This set is tested only with stm32f407 and is a little bit old.
+The current library from ST may contain a different version.
+
+This directory contains:
+
+
+startup.S   :  startup code and vector table. 
+
+The startup code is called directly from reset. In this processor,
+any reset operation calls the reset vector that is the first in the 
+vector table.
+I have only added attribute thumb_func at line 66. Otherwise the thumb
+bit may not be correct in the address of reset vector.
+
+The code copies data from rom to the data section and zeroes the
+bss section. Then it calls the clock setup routine and after that
+jumps to main.
+
+Note that all assembler files should have suffix .S in this
+toolset, because .s is for intermediate files that are removed with
+make clean.
+
+
+system_stm32f4xx.c : system initialization
+
+This file has functions to set the system oscillator and external
+memory controller. It is assumed that the system has an external
+25 Mhz oscillator. Then the system frequency is set to 168 Mhz.
+
+I have modified the file such a way that if the oscillator is not 
+found, the system starts with internal oscillator at 107 Mhz.
+The memory initialization functions are not used here.
+
+
+The headers are required by system_stm32f4xx.c. I am not sure if they
+all are really needed but included anyway.

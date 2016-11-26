@@ -1,0 +1,85 @@
+This file tells how to make a full gdc cross compiler toolchain. 
+
+This text is a copy the wiki:
+https://bitbucket.org/timosi/minlibd/wiki/gdc_cross_compiler
+This file may be outdated. See the wiki page for newer version.
+
+Making tools step by step
+
+If it is not possible to use crosstools, the toolchain can be made step by step. This can also be used to make a native compiler.
+
+Preparation
+
+There are no requirements for special tools or libraries. A normal compilation environment is enough. GCC instructions says that the version of the system gcc (the compiler that is installed in your system, that you use to compile your programs) should be as close as possible to the version of the gcc sources. For complete toolchain the following packages are needed: binutils, libc, gcc and gdc. binutils and libc are not needed when building a native compiler.
+
+Binutils
+
+Binutils is the normal gnu binutils package available from gnu.org or from the site of your distribution vendor. Configure it with --target=your-target-triplet .
+
+Libc
+
+Libc can be the Gnu C library or one of the alternatives. Gnu libc is big and may not compile for all targets. Newlib is a lighter alternative. Libc is not needed for a c only compiler. Building libc can be done after building gcc.
+
+glibc
+
+Gnu libc is available the same sites as binutils. Configure it with the same target that you used for binutils. Some features may have to be disabled to get it built.
+
+newlib
+
+Newlib is a lightweight c library for embedded systems. It is available from www.sourceware.org/newlib/
+
+GCC
+
+Stable gcc sources are on gnu and distribution sites. The mirror sites may not have the development vesions. Newest versions, including weekly snapshots and git access are in gcc.cnu.org. If this is the first time to make this compiler for this system, it is recommended to start with only c. The build system makes all libraries first. If there is problem in the libraries, no compiler will be built. Often some of the optional libraries will fail and should be disabled. Building c++ and d compilers may require that the c compiler from this build is already installed. Gcc istructions say that there should be a build directory that is totally outside of the source tree. Make that directory, go there and give configure command like: path-to-gcc/configure options.
+
+These options are needed:
+
+--target=
+
+    The same target you used for binutils. Even if testing a small variation, there should be binutils with the exact match. This option is omitted if making a native compiler. 
+
+--disable-bootstrap
+
+    If enabled, the gcc build system tries to compile the sources again with the compiler it just generated. For cross compilers this is not possible and for native compilers this will often fail. This option will disable that last stage. The build system should disable this for cross compilers but that seems not to be always true. 
+
+--enable-languages=c -- enable-languages=c,c++ -- enable-languages=c,c++,d
+
+    By default all languages found in sources will be built. If this is first time that you build the gcc package for given target, it is better to first build and install c only, then c++ and then d. If there are problems, this way it is easier to find what languages they are related to. If d is specified, c++ is automatically enabled. It may still be better to make c++ first. 
+
+--disable-libssp --disable-libgomp --disable-libmudflab
+
+    Building of these libraries may fail. In that case they should be disabled. 
+
+--disable-multilib/--enable-multilib
+
+    Multilib means to build different versions of libraries for different processor variants. Whether to enable or disable them depends on the target processor: if the default is the right one no additional libraries are needed. Disabling may be necessary if the others can not be built successfully. Libraries for all possible processor versions may not be built even if enabled. Sometimes it is necessary to enable/disable single libraries in gcc-source/gcc/config/your-processor/t-* 
+
+--with-newlib --without-headers
+
+    These options are needed if libc for target is from newlib package. Not needed if building only c compiler. 
+
+In addition the normal configure options ( like --disable-nls and prefix= ) can be used. As usual, configure --help prints available options. Then make and make install will do the job. Parallel make can be used (make -j2 or more) Sometimes build has failed with parallel make, but some people have reported no problems. It may be that problems occur only if -j is more than the number of processor cores.
+
+GDC
+
+The gdc sources are not yet part of gcc package. The home page of this wiki tells where to get gdc sources. There is a separate gdc tree for gcc 4.7 and 4.8. It is not possible to use 4.8 gdc with 4.7 gcc or vice versa. The latest repository versions of gdc and gcc should work together.
+
+The setup-gcc script found in gdc directory copies the gdc files to gcc source tree and makes patches to gcc build system. In gdc tree there is two directories: d contains the d compiler files and libphobos contains the libphobos library and libdruntime library. Libphobos is higher level library and is not needed to compile and run d programs. Libdruntime is lower level library, which contains basic classes like Object and Thread. There is also several low level functions that are not called directly from d code. Instead the compiler generates calls to these functions from d constructions.
+
+    Libdruntime has many features that depends on the target operating system. If target is not win/mac/linux the library may not compile at all. It is possible to have a working d compiler without libraries and compile c-style programs with it. As soon as there is something with classes or d special keywords, libdruntime is needed. 
+
+Building gdc goes the same way as building gcc before. If libphobos can not be built, --disable-libphobos should be added to configure.
+
+Known problems
+
+There are several assertions in libdruntime sources. If the library can not be compiled, the compilation stops with message "unsupported platform". Sometimes the compilation passes some assertions and the message is instead "undefined symbol: iobuf" that comes from stdio.d. The compiler can be generated without libraries by giving --disable-libphobos to configure.
+
+"Link tests not allowed after gcc_no_executables" is a bit misleading message and is not related to the test that generates it. At the beginning, gcc configure tries to compile a simple test program. If that fails, a variable is set telling that compilation is not possible. If some other test attempts to make a test program, configure gives this error message. There are various reasons for this message. Configure has not found all includes, binaries and libraries that are needed for the target. Even if the system is configured for native target, the build system may erroneusly try to make a cross compiler. The reason can be found in config.log at the directory make was when the error appeared. Somewhere at the beginning of this file is a line like "checking if gcc can produce executables". Below this is the result of the test. It is possible to give exact paths to configure, but sometimes it helps to delete everything from the build directory and start again.
+
+It should be noted that the installed executables have the target prefix in front of them, like target-prefix-gcc. This way they are not mixed with the system compiler. Gcc usually finds its internal files but the other binaries have to be in a directory which is in the search path. The message "cannot compute suffix of object files: cannot compile" means that the target assembler was not found.
+
+If everything is installed correctly but the compiled appication does not work or there is linker errors, the reason may be incompatible libraries. Libraries are compiled with default configuration settings that may be incompatible with user options. Sometimes the linker can give an error message of incompatible libraries, sometimes it can not. In multilib configuration the compiler flags should select the right library but this is not always true. Command like "my-target-string-gcc (my other options) -print-libgcc-file-name" prints the library name that gcc would use with given options. Command like "my-target-string-gcc -print-multi-lib" shows all installed libraries and the options which choose between them.
+
+Libdruntime
+
+If the build system is not able to make libphobos/libdruntime, it may be necessary to compile libdruntime separately. It is possible to compile the library without autotools(configure, automake etc) but no exact information exists yet. There are projects going on to make the library compatible with mobile platforms and "freestanding" systems when there is no os at all. 

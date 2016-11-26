@@ -1,0 +1,34 @@
+Any suggestions and commits are welcome. 
+Here are some areas that might need development:
+
+- Support for other processors and systems
+This project started because there was need for a toolset for stm32 
+processors. Although arm is one of the most used processors and stm32 is one
+of the most used arm controllers, there are several other processors.
+Support for any of them is welcome. Also support for platforms that have
+some operating system are welcome.
+
+- Library versions
+The first version of this library goes in the middle way: a minimum set of
+files is included with minimum changes. It could be useful to have at
+least two additional versions: a very minimum library for small
+systems where all extra functions are stripped from files.
+Then a maximum version where all possible files are included and also
+anything from phobos that can be compiled
+
+- Linking issues
+There are still several issues in linking. Some of them are found in
+README.tls
+
+- Windows support
+To make a D cross compiler that can be used in Windows. Either turning
+the native Windows gdc to cross compiler or adding D support to any
+other Windows toolchain.
+
+- Startup files and standard libraries.
+Support of peripherals in controllers or other hardware. Also any
+simple libraries for math, communication etc. The keyword is: simple.
+For example: do we need support for odd parity in uart just because our
+hardware can do it? Anyone who really needs it, can extend the standard
+class and override the functions. That is the idea of oo programming, I think.
+

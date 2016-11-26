@@ -1,0 +1,77 @@
+These are the instructions to compile the minimum druntime library.
+
+REQUIREMENTS
+
+This modified library can not be compiled within gdc.
+You should first have a working gcc and gdc for your target,
+compiled without phobos and druntime.
+Gcc has to be configured with --disable-libphobos.
+Instructions to build gcc are in README.gdc and in the wiki. 
+
+This repository follows the latest development of gdc and gcc.
+Usually snapshots not older than some months are used and the
+library should compile with current head of gdc. 
+Gdc always requires matching gcc version, either release or
+snapshot. In gdc sources there is file gcc.version, which tells
+the matching gcc. There is no version check except for major version
+number. Often a near gcc version ( +- 2 months) may work but
+this is not guaranteed.
+
+The library in this repository has been taken from gdc sources in 
+august 2016 and works with gdc master, which is at D version 2.068.
+It has been successfully compiled with gcc 7 head at the end of august
+2016.
+
+To use this library with stable gdc/gcc check out the 2.066 tag.
+That should compile with gdc 2.066 and gcc 6 releases
+
+To use this repository with older releases there is some tags for 
+known stable points. 
+
+The library for tag 2.065 can be compiled with gdc 2.065 and gcc
+4.10 from end of june or with gcc 5.0 from end of august 2014.
+Gcc changed its numbering system and 4.10 will never be released.
+
+The library sources for tag 2.064 were taken from gdc head march 8,
+2014 and should work with gdc and gcc release 4.9 
+
+Tag 2.063 will work with gdc 2.063 and gcc 4.8 branch starting
+from july 2013 and last time tested november 2013. This tag may also
+work with newer 4.8 versions but this has not been tested.
+
+BUILD AND INSTALL
+
+To make this library, go to the libdruntime directory,
+use the makefile in this directory and edit it for your target.
+
+Do not try to use configure tools for this library. 
+The files *.am and *.in are copied within the original package
+but can not be used in this case.
+
+If the compilation succeeds, there will be file libdruntime.a in this
+directory. There is no 'install' in makefile. Just copy the library 
+to a place where your linker will find it or add this directory to your
+library search path.
+
+USING THE LIBRARY
+
+Remember to put the library source directory into your include search path.
+The compiler always needs to find the whole source tree 
+for imports. This seems generally to cause confusion.
+Look at the files in tools directory for an example.
+
+When compiling programs that use this library, remember to use the same
+compiler settings for the library and the program.
+
+Even if the library is compiled correctly, it may contain undefined
+references that will show up at link time. Not all D constructions have
+been tested. The compiler may generate calls to functions that are not
+yet part of the library.
+
+The following library routines are not part of the library and
+must be provided: malloc, calloc, realloc and free.
+A library function that will give the tls address is also needed.
+The name of this function is target dependent.
+Samples for these functions are in the tools directory.
+
+

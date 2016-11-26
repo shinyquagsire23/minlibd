@@ -1,0 +1,72 @@
+This file is not a changelog. Instead, this file documents changes 
+that has been made to the original gdc libdruntime sources.
+(2.068 and 7.0 series gdc/gcc)
+The changes needed for previous versions are in separate files.
+
+The files are in the order they were needed when testing
+
+****
+The following changes are required to get the library itself to compile:
+
+core/stdc/stdlib.d
+71  default value for RAND_MAX instead of assert
+
+core/stdc/stddef.d
+34  alias for wchar_t
+
+copied gcc/config.d.in to config.d
+gcc/config.d
+22 real value instead of config variable
+32 real value instead of config variable
+
+gcstub/gc.d
+31  removed import stdio
+
+****
+The following changes are required to be able to link against
+this library. Othewrwise there will be unresolved symbols.
+
+
+object.d
+130-138    removed factory  
+172-177    removed mutex related code
+619-670    removed associative arrays
+869-878    removed module related code
+1298-1498  removed moduleinfo
+1736-2285  removed associative arrays
+3082       removed aa related line
+
+
+rt/lifetime.d
+49-58  removed lifetime_init
+//218,225-226 removed synchronized block
+//252,259-260     removed synchronized
+//286,293-294     removed synchronized
+1372-1373       removed monitor related call
+
+core/exception.d
+//14  removed import stdio
+605-608,622-626,639-642,651-654 removed module related functions
+
+
+rt/adi.d
+33-121  removed _adReverseChar (because utf is not supported)
+313-357 removed _adSortChar and _adSortWchar (utf not supported)
+
+rt/config.d
+77-148  removed command line option and environment functions
+	
+rt/deh.d
+27  removed unresolved call
+
+core/memory.d
+//84-85,124 removed private 
+//761 removed run_finalizers
+
+gcstub/gc.d
+125 removed thread_init
+
+core/time.d (optional file, currently not included. )
+79   removed import stdc.time
+80   removed import stdio
+??? fix this2125 dummy retval for the function

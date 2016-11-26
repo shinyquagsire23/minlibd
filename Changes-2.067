@@ -1,0 +1,51 @@
+This file is not a changelog. Instead, this file documents changes 
+that has been made to the original gdc libdruntime sources.
+(2.066 and 5.0 series gdc/gcc)
+The changes needed for previous versions are in separate files.
+
+The files are in the order they were needed when testing
+
+core/stdc/stdlib.d
+59  default value for RAND_MAX instead of assert
+
+core/memory
+84-85,124 removed private 
+761 removed run_finalizers
+
+gcstub/gc.d
+31  removed import stdio
+135 removed thread_init
+
+object.d
+143-151    removed factory  (moduleinfo is not used)
+611-662    removed associative arrays
+863-878    removed module related code
+1583-1774  removed moduleinfo
+1778-1973  removed monitor
+1974-2322  removed assicoative arrays
+2778       removed aa related line
+
+core/exception.d
+14  removed import stdio
+597-601,614-618,631-635,643-647 removed module related functions
+
+rt/lifetime.d
+218,225-226 removed synchronized block
+252,259-260     removed synchronized
+286,293-294     removed synchronized
+1185-1186       removed monitor call
+
+rt/adi.d
+33-121  removed _adReverseChar (because utf is not supported)
+324-364 removed _adSortChar and _adSortWchar because of several
+        missing functions
+	
+gcc/config.d.in copied to config.d and edited manually to match
+                target settings
+22   = 1
+32   = ThreadModel.Single
+
+core/time.d (optional file, currently not included. Fix this! )
+79   removed import stdc.time
+80   removed import stdio
+??? fix this2125 dummy retval for the function
